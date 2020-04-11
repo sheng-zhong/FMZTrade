@@ -9,9 +9,10 @@ exchanges: [{"eid":"OKEX","currency":"BTC_USDT","stocks":0}]
 from fmz import *
 task = VCtx(__doc__)
 import talib as TA
+import time
 
-params = type('obj', (object,), {"MACD_range": "12", "RSI_range": "12", "EMA_range": "22",
-                                 "BOLL_range": "20", "middle_range": PERIOD_M15, "long_range": PERIOD_M75})
+# params = type('obj', (object,), {"MACD_range": "12", "RSI_range": "12", "EMA_range": "22",
+#                                 "BOLL_range": "20", "middle_range": PERIOD_M15, "long_range": PERIOD_M75})
 # 多头代号1，空头代号0
 
 def calculate_limit():
@@ -35,15 +36,17 @@ def account_station():
     #            止损位置三、四。。。： 保护50%的账面获利
     pass
 
-def trade_chance(direction):
-    # 根据RSI获取中介时间节点的入场机会
+def second_filter(direction):
+    # 根据EMA22、BOLL、RSI获取中介时间节点的入场机会
 
     # 设置期货杠杆大小、合约类型（永续）
     exchange.SetMarginLevel(2)
     exchange.SetContractType("swap")
+
+    counter = 1
     while True:
-        r = exchange.GetRecords(PERIOD_M15)
-        rsi = TA.RSI(r, 12)
+        r = exchange.GetRecords(PERIOD_M10)
+        rsi = TA.RSI(r, 1)
         ticker = exchange.GetTicker()
         if direction:
             # 多头吃单交易
@@ -65,44 +68,34 @@ def trade_chance(direction):
     price_limit = calculate_limit()
     return price_limit
 
-def triple_net(recoders):
-    # 判断长期趋势 -- macd和ema
-    macd = TA.MACD(recoders, 12)
-    if recoders and len(recoders) > 22:
-        ema = TA.EMA(recoders, 22)
-        if ema[-1] > ema[-2] > ema[-3] and (ema[-1] - ema[-3])/ema[-1] > 0.02: # EMA多趋势判断标准
-            Log("[EMA趋势]： 向上，启用脉冲交易系统")
-            if macd: # MACD多趋势判断标准
-                Log("[MACD趋势]： 向上, 与EMA趋势判断相同！")
-                Log("[== 开始寻找多头入场机会 ==]")
-                price_limit = trade_chance(1)
-            else:
-                Log("【-- MACD趋势判断与EMA相悖，等待机会 --】")
-                price_limit = -1
-
-        if ema[-1] < ema[-2] < ema[-3] and (ema[-3] - ema[-1])/ema[-3] > 0.02: # EMA空趋势判断标准
-            Log("[EMA趋势]： 向下，启用脉冲交易系统")
-            if macd: # MACD空趋势判断标准
-                Log("[MACD趋势]： 向下，与EMA趋势判断相同！")
-                Log("[== 开始寻找空头入场机会 ==]")
-                trade_chance(0)
-                price_limit = calculate_limit()
-            else:
-                Log("【-- MACD趋势判断与EMA相悖，等待中 --】")
-                price_limit = -1
+def first_filter(before_midLine, before_ma):
+    # 判断长期趋势 -- MA和BOLL
+    recoders = exchange.GetRecords(PERIOD_M30)
+    ma = TA.MA(recoders, 14)
+    if recoders and len(recoders) > 20:
+        boll = TA.BOLL(recoders, 20, 2)
+        boll_midLine = boll[1]
+        if boll_midLine > before_midLine and ma > before_ma: # 长期多
+            Log("[50min趋势]： 向上，开始在10min级别寻找交易机会！")
+            # trade_result = second_filter(1)
+            # Log("[交易结果]: {}".format(trade_result))
+        elif boll_midLine < before_midLine and ma < before_ma: # 长期空
+            Log("[50min趋势]： 向下，开始在10min级别寻找交易机会！")
+            # trade_result = second_filter(0)
+            # Log("[交易结果]: {}".format(trade_result))
         else:
-            Log("[-- EMA处于震荡行情之中，启用震荡指标 --]")
-            # BOLL下轨开多，上轨开空
-            price_limit = calculate_limit()
+            Log("[50min趋势]， 趋势难以判断，等待机会。")
     else:
-        Log("[-- 数据量不足以计算EMA数值，等待中 --]")
-        price_limit = -1
-    return price_limit
+        Log("[-- 数据量不足以计算BOLL数值，等待中 --]")
+        ma = -1
+        boll_midLine = -1
+    return ma, boll_midLine
 
+flag = 1
 while True:
-    # 获取持仓信息
-    position = exchange.GetPosition()
-    if position
-    recoders = exchange.GetRecords(PERIOD_M15)
-    triple_net(recoders)
-    Sleep(10)
+    if flag:
+        now_midLine, now_ma = first_filter(0, 0)
+        flag = False
+    else:
+        now_midLine, now_ma = first_filter(now_midLine, now_ma)
+    time.sleep(3)
