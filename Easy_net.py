@@ -1,14 +1,14 @@
-'''
-start: 2020-03-08 00:00:00
-end: 2020-04-08 00:00:00
-period: 15m
-exchanges: [{"eid":"OKEX","currency":"BTC_USDT","stocks":0}]
+'''backtest
+start: 2015-02-22 00:00:00
+end: 2019-12-06 00:00:00
+period: 1h
+exchanges: [{"eid":"Futures_OKCoin","currency":"BTC_USD"}]
 '''
 import sys
 from fmz import *
 task = VCtx(__doc__)
 
-init_counter = 1000
+init_counter = exchange.GetPosition()[0]
 max_price = 7000
 min_price = 6000
 mid_price = min_price + (max_price - min_price)/2
