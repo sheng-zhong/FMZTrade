@@ -1,26 +1,33 @@
-http://118.178.56.54:7474/browser/
-usernm: neo4j
-passwd: By5liml123
+"""
+交易回测引擎：
+  初始化账户设置
+  开仓：方向，数量，价格
+    计算占用保证金
+    更新账户
+  平仓：方向，数量，价格
+    计算盈利
+    更新账户
+"""
+class BackTest(object):
+    # 交易回测引擎
+    def __init__(self, leverage=1, commission=0.00005, initial_balance=10000):
+        self.leverage = leverage
+        self.commission = commission
+        self.initial_balance = initial_balance
+        self.account = {"balance": self.initial_balance, ""}
+        self.trading_log =  {"open_price": [], ""}
 
-node4j图数据库
-   id： uuid
-   name: 字符串，标签
-   attributes： {属性}
-   AtlasRelation：联系标签
+    def update_account(self):
+        pass
 
+    def OpenBuy(self, price, ammount):
+        pass
 
-暂时约定的格式：
-    节点：AtlasNode
-        uuid
-        name
-        attributes
-    联系：AtlasRelation
-        uuid
-        name
-        attributes
+    def CloseBuy(self):
+        pass
 
-节点实例：
+    def OpenSell(self):
+        pass
 
-uuid:"1"
-name :”硝酸胺“
-attributes：{"发展历史":"公元。。。","应急处置":"....","理化性质":"","用途":""}
+    def CloseSell(self):
+        pass

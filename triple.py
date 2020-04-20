@@ -1,29 +1,8 @@
-'''backtest
-start: 2020-02-22 00:00:00
-end: 2020-04-06 00:00:00
-period: 1h
-exchanges: [{"eid":"Futures_OKCoin","currency":"BTC_USD"}]
-'''
-import sys
 import pandas as pd
-import datetime
-# from fmz import *
-# task = VCtx(__doc__)
-
-init_counter = exchange.GetPosition()[0]
-max_price = 7000
-min_price = 6000
-mid_price = min_price + (max_price - min_price)/2
-net_sum = 40
-net_price = ((max_price - min_price)/2)/net_sum
-net_position = (init_counter * 3) / (100 * net_sum)
-if (max_price - min_price)/min_price > 0.2:
-    print("[-- 价格区间设置错误，区间差价大于20% --]")
-    sys.exit(0)
 
 class Exchange:
-    # 交易回测引擎
-    def __init__(self, trade_symbols, leverage=20, commission=0.00005, initial_balance=10000, log=False):
+
+    def __init__(self, trade_symbols, leverage=20, commission=0.00005, initial_balance=10000, log=True):
         self.initial_balance = initial_balance  # 初始的资产
         self.commission = commission
         self.leverage = leverage
@@ -109,20 +88,10 @@ class Exchange:
                                   self.account['USDT']['leverage'], self.account['USDT']['realised_profit'],
                                   self.account['USDT']['unrealised_profit']]
 
-class StopPolicy(object):
-    # 止盈止损策略
-    def __init__(self):
-        pass
-
-    def stop_loss(self):
-        pass
-
-    def stop_profit(self):
-        pass
 
 kongtou_trade_list = []
 duotou_trade_list = []
-while True:
+
     ticker = exchange.GetTicker()
     price = ticker['Last']
     if (price >= mid_price) and (price < max_price):  # 空头
@@ -176,4 +145,3 @@ while True:
             exchange.SetDirection("closebuy")
             exchange.Sell(price - 10, net_position*len(duotou_trade_list))
         sys.exit(0)
-    Sleep(1000*3)
