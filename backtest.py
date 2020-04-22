@@ -14,7 +14,7 @@ class BackTest(object):
         self.leverage = leverage
         self.commission = commission
         self.initial_balance = initial_balance
-        self.account = {"balance": self.initial_balance, "amount": 0, "profit": 0, "commission": 0}
+        self.account = {"balance": self.initial_balance, "bull_amount": 0, "bear_amount": 0, "profit": 0, "commission": 0}
         self.trading_log =  {"open_price": [], "direction": [], "close_price": [], "amount": [],
                              "profit": [], "commission": [], "margin": []}
 
@@ -36,8 +36,17 @@ class BackTest(object):
         else:
             print("[-- 保证金不足，无法开仓 --]")
 
-    def CloseBuy(self):
-        pass
+    def CloseBuy(self, price, amount):
+        if amount <= self.account['amount']:
+            commission = price * amount * self.commission
+            profit = price * amount - self.trading_log[-2 if len(self.trading_log)>=2 else -1]
+            released_margin = price * amount / self.leverage
+
+            self.account['commission'] += commission
+            self.account['profit'] += profit
+            self.account['balance'] += released_margin
+        else:
+            print("[-- 剩余币数不足 --]")
 
     def OpenSell(self):
         pass
